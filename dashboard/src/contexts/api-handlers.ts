@@ -15,14 +15,7 @@ import { TaskResultOutput } from "garden-service/build/src/commands/get/get-task
 import { ConfigDump } from "garden-service/build/src/garden"
 import { TestResultOutput } from "garden-service/build/src/commands/get/get-test-result"
 import { GraphOutput } from "garden-service/build/src/commands/get/get-graph"
-import {
-  Store,
-  Action,
-  Module,
-  Service,
-  Task,
-  Test,
-} from "./api"
+import { Store, Action, Module, Service, Task, Test } from "./api"
 import {
   fetchLogs,
   fetchStatus,
@@ -45,9 +38,9 @@ import {
  */
 
 interface LoadHandlerParams {
-  store: Store,
-  dispatch: React.Dispatch<Action>,
-  force?: boolean,
+  store: Store
+  dispatch: React.Dispatch<Action>
+  force?: boolean
 }
 
 export async function loadConfigHandler({ store, dispatch, force = false }: LoadHandlerParams) {
@@ -77,16 +70,15 @@ function processConfig(store: Store, config: ConfigDump) {
   let tests: { [testKey: string]: Test } = {}
 
   for (const cfg of config.moduleConfigs) {
-
     const module: Module = {
       name: cfg.name,
       type: cfg.type,
       path: cfg.path,
       repositoryUrl: cfg.repositoryUrl,
       description: cfg.description,
-      services: cfg.serviceConfigs.map(service => service.name),
-      tests: cfg.testConfigs.map(test => `${cfg.name}.${test.name}`),
-      tasks: cfg.taskConfigs.map(task => task.name),
+      services: cfg.serviceConfigs.map((service) => service.name),
+      tests: cfg.testConfigs.map((test) => `${cfg.name}.${test.name}`),
+      tasks: cfg.taskConfigs.map((task) => task.name),
       taskState: "taskComplete",
     }
     modules[cfg.name] = module
@@ -111,7 +103,7 @@ function processConfig(store: Store, config: ConfigDump) {
     }
   }
 
-  const processedStore = produce(store, storeDraft => {
+  const processedStore = produce(store, (storeDraft) => {
     storeDraft.entities.modules = modules
     storeDraft.entities.services = services
     storeDraft.entities.tests = tests
@@ -122,7 +114,7 @@ function processConfig(store: Store, config: ConfigDump) {
   return processedStore
 }
 
-interface LoadLogsHandlerParams extends LoadHandlerParams, FetchLogsParams { }
+interface LoadLogsHandlerParams extends LoadHandlerParams, FetchLogsParams {}
 
 export async function loadLogsHandler({ serviceNames, store, dispatch, force = false }: LoadLogsHandlerParams) {
   const requestKey = "fetchLogs"
@@ -144,7 +136,7 @@ export async function loadLogsHandler({ serviceNames, store, dispatch, force = f
 }
 
 function processLogs(store: Store, logs: ServiceLogEntry[]) {
-  return produce(store, storeDraft => {
+  return produce(store, (storeDraft) => {
     storeDraft.entities.logs = groupBy(logs, "serviceName")
   })
 }
@@ -166,11 +158,15 @@ export async function loadStatusHandler({ store, dispatch, force = false }: Load
     return
   }
 
-  dispatch({ store: processStatus(store, res), type: "fetchSuccess", requestKey })
+  dispatch({
+    store: processStatus(store, res),
+    type: "fetchSuccess",
+    requestKey,
+  })
 }
 
 function processStatus(store: Store, status: StatusCommandResult) {
-  const processedStore = produce(store, storeDraft => {
+  const processedStore = produce(store, (storeDraft) => {
     for (const serviceName of Object.keys(status.services)) {
       storeDraft.entities.services[serviceName] = {
         ...storeDraft.entities.services[serviceName],
@@ -195,11 +191,14 @@ function processStatus(store: Store, status: StatusCommandResult) {
   return processedStore
 }
 
-interface LoadTaskResultHandlerParams extends LoadHandlerParams, FetchTaskResultParams { }
+interface LoadTaskResultHandlerParams extends LoadHandlerParams, FetchTaskResultParams {}
 
-export async function loadTaskResultHandler(
-  { store, dispatch, force = false, ...fetchParams }: LoadTaskResultHandlerParams,
-) {
+export async function loadTaskResultHandler({
+  store,
+  dispatch,
+  force = false,
+  ...fetchParams
+}: LoadTaskResultHandlerParams) {
   const requestKey = "fetchTaskResult"
 
   if (!force && store.requestStates[requestKey].didFetch) {
@@ -216,18 +215,22 @@ export async function loadTaskResultHandler(
     return
   }
 
-  dispatch({ store: processTaskResult(store, res), type: "fetchSuccess", requestKey })
+  dispatch({
+    store: processTaskResult(store, res),
+    type: "fetchSuccess",
+    requestKey,
+  })
 }
 
 function processTaskResult(store: Store, result: TaskResultOutput) {
-  return produce(store, storeDraft => {
+  return produce(store, (storeDraft) => {
     storeDraft.entities.tasks = storeDraft.entities.tasks || {}
     storeDraft.entities.tasks[result.name] = storeDraft.entities.tasks[result.name] || {}
     storeDraft.entities.tasks[result.name].result = result
   })
 }
 
-interface LoadTestResultParams extends LoadHandlerParams, FetchTestResultParams { }
+interface LoadTestResultParams extends LoadHandlerParams, FetchTestResultParams {}
 
 export async function loadTestResultHandler({ store, dispatch, force = false, ...fetchParams }: LoadTestResultParams) {
   const requestKey = "fetchTestResult"
@@ -246,11 +249,15 @@ export async function loadTestResultHandler({ store, dispatch, force = false, ..
     return
   }
 
-  dispatch({ store: processTestResult(store, res), type: "fetchSuccess", requestKey })
+  dispatch({
+    store: processTestResult(store, res),
+    type: "fetchSuccess",
+    requestKey,
+  })
 }
 
 function processTestResult(store: Store, result: TestResultOutput) {
-  return produce(store, storeDraft => {
+  return produce(store, (storeDraft) => {
     storeDraft.entities.tests = storeDraft.entities.tests || {}
     storeDraft.entities.tests[result.name] = storeDraft.entities.tests[result.name] || {}
     storeDraft.entities.tests[result.name].result = result
@@ -274,11 +281,15 @@ export async function loadGraphHandler({ store, dispatch, force = false }: LoadH
     return
   }
 
-  dispatch({ store: processGraph(store, res), type: "fetchSuccess", requestKey })
+  dispatch({
+    store: processGraph(store, res),
+    type: "fetchSuccess",
+    requestKey,
+  })
 }
 
 function processGraph(store: Store, graph: GraphOutput) {
-  return produce(store, storeDraft => {
+  return produce(store, (storeDraft) => {
     storeDraft.entities.graph = graph
   })
 }

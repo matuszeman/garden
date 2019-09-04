@@ -16,7 +16,10 @@ import Spinner from "../components/spinner"
 export default () => {
   const {
     actions: { loadConfig, loadLogs },
-    store: { entities: { logs, services }, requestStates: { fetchLogs, fetchConfig } },
+    store: {
+      entities: { logs, services },
+      requestStates: { fetchLogs, fetchConfig },
+    },
   } = useApi()
 
   const serviceNames: string[] = Object.keys(services)
@@ -43,12 +46,8 @@ export default () => {
   }
 
   if (fetchConfig.error || fetchLogs.error) {
-    return (
-      <PageError error={(fetchConfig.error || fetchLogs.error)} />
-    )
+    return <PageError error={fetchConfig.error || fetchLogs.error} />
   }
 
-  return (
-    <Logs onRefresh={loadLogs} logs={logs} />
-  )
+  return <Logs onRefresh={loadLogs} logs={logs} />
 }

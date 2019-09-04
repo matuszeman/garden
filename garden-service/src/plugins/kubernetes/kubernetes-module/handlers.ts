@@ -48,9 +48,11 @@ async function build({ module }: BuildModuleParams<KubernetesModule>): Promise<B
   return { fresh: true }
 }
 
-async function getServiceStatus(
-  { ctx, module, log }: GetServiceStatusParams<KubernetesModule>,
-): Promise<ServiceStatus> {
+async function getServiceStatus({
+  ctx,
+  module,
+  log,
+}: GetServiceStatusParams<KubernetesModule>): Promise<ServiceStatus> {
   const k8sCtx = <KubernetesPluginContext>ctx
   const namespace = await getNamespace({
     log,
@@ -73,9 +75,7 @@ async function getServiceStatus(
   }
 }
 
-async function deployService(
-  params: DeployServiceParams<KubernetesModule>,
-): Promise<ServiceStatus> {
+async function deployService(params: DeployServiceParams<KubernetesModule>): Promise<ServiceStatus> {
   const { ctx, force, module, service, log } = params
 
   const k8sCtx = <KubernetesPluginContext>ctx
@@ -118,7 +118,7 @@ async function deleteService(params: DeleteServiceParams): Promise<ServiceStatus
     namespace,
     labelKey: gardenAnnotationKey("service"),
     labelValue: service.name,
-    objectTypes: uniq(manifests.map(m => m.kind)),
+    objectTypes: uniq(manifests.map((m) => m.kind)),
     includeUninitialized: false,
   })
 
@@ -144,10 +144,12 @@ function getSelector(service: KubernetesService) {
  * Read the manifests from the module config, as well as any referenced files in the config.
  */
 async function readManifests(module: KubernetesModule) {
-  const fileManifests = flatten(await Bluebird.map(module.spec.files, async (path) => {
-    const absPath = resolve(module.buildPath, path)
-    return safeLoadAll((await readFile(absPath)).toString())
-  }))
+  const fileManifests = flatten(
+    await Bluebird.map(module.spec.files, async (path) => {
+      const absPath = resolve(module.buildPath, path)
+      return safeLoadAll((await readFile(absPath)).toString())
+    })
+  )
 
   return [...module.spec.manifests, ...fileManifests]
 }
@@ -157,7 +159,10 @@ async function readManifests(module: KubernetesModule) {
  * Use this when applying to the cluster, or comparing against deployed resources.
  */
 async function getManifests(
-  api: KubeApi, log: LogEntry, module: KubernetesModule, defaultNamespace: string,
+  api: KubeApi,
+  log: LogEntry,
+  module: KubernetesModule,
+  defaultNamespace: string
 ): Promise<KubernetesResource[]> {
   const manifests = await readManifests(module)
 

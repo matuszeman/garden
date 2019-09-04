@@ -11,11 +11,7 @@ import styled from "@emotion/styled"
 import Graph from "../components/graph"
 import PageError from "../components/page-error"
 import { TaskState, useApi } from "../contexts/api"
-import {
-  StackGraphSupportedFilterKeys,
-  EntityResultSupportedTypes,
-  useUiState,
-} from "../contexts/ui"
+import { StackGraphSupportedFilterKeys, EntityResultSupportedTypes, useUiState } from "../contexts/ui"
 import EntityResult from "./entity-result"
 import Spinner from "../components/spinner"
 import { Filters } from "../components/group-filter"
@@ -24,20 +20,23 @@ import { RenderedNode } from "garden-service/build/src/config-graph"
 import { GraphOutput } from "garden-service/build/src/commands/get/get-graph"
 
 const Wrapper = styled.div`
-  padding-left: .75rem;
+  padding-left: 0.75rem;
 `
 
 export interface RenderedNodeWithStatus extends RenderedNode {
   status?: TaskState
 }
 export interface GraphOutputWithNodeStatus extends GraphOutput {
-  nodes: RenderedNodeWithStatus[],
+  nodes: RenderedNodeWithStatus[]
 }
 
 export default () => {
   const {
     actions: { loadGraph, loadConfig },
-    store: { entities: { modules, services, tests, tasks, graph }, requestStates: { fetchGraph, fetchTaskStates } },
+    store: {
+      entities: { modules, services, tests, tasks, graph },
+      requestStates: { fetchGraph, fetchTaskStates },
+    },
   } = useApi()
 
   useEffect(() => {
@@ -56,7 +55,11 @@ export default () => {
 
   const {
     actions: { selectGraphNode, stackGraphToggleItemsView, clearGraphNodeSelection },
-    state: { selectedGraphNode, isSidebarOpen, stackGraph: { filters } },
+    state: {
+      selectedGraphNode,
+      isSidebarOpen,
+      stackGraph: { filters },
+    },
   } = useUiState()
 
   if (fetchGraph.error) {
@@ -67,32 +70,35 @@ export default () => {
     return <Spinner />
   }
 
-  const nodesWithStatus: RenderedNodeWithStatus[] = graph.nodes.map(node => {
+  const nodesWithStatus: RenderedNodeWithStatus[] = graph.nodes.map((node) => {
     let taskState: TaskState = "taskComplete"
     switch (node.type) {
       case "publish":
         break
       case "deploy":
-        taskState = services[node.name] && services[node.name].taskState || taskState
+        taskState = (services[node.name] && services[node.name].taskState) || taskState
         break
       case "build":
-        taskState = modules[node.name] && modules[node.name].taskState || taskState
+        taskState = (modules[node.name] && modules[node.name].taskState) || taskState
         break
       case "run":
-        taskState = tasks[node.name] && tasks[node.name].taskState || taskState
+        taskState = (tasks[node.name] && tasks[node.name].taskState) || taskState
         break
       case "test":
-        taskState = tests[node.name] && tests[node.name].taskState || taskState
+        taskState = (tests[node.name] && tests[node.name].taskState) || taskState
         break
     }
     return { ...node, status: taskState }
   })
 
-  let graphWithStatus: GraphOutputWithNodeStatus = { nodes: nodesWithStatus, relationships: graph.relationships }
+  let graphWithStatus: GraphOutputWithNodeStatus = {
+    nodes: nodesWithStatus,
+    relationships: graph.relationships,
+  }
 
   let moreInfoPane: React.ReactNode = null
   if (selectedGraphNode && graph) {
-    const node = graph.nodes.find(n => n.key === selectedGraphNode)
+    const node = graph.nodes.find((n) => n.key === selectedGraphNode)
     if (node) {
       moreInfoPane = (
         <div className="col-xs-5 col-sm-5 col-md-4 col-lg-4 col-xl-4">
@@ -107,16 +113,15 @@ export default () => {
     }
   }
 
-  const createFiltersState =
-    (allGroupFilters, type): Filters<StackGraphSupportedFilterKeys> => {
-      return ({
-        ...allGroupFilters,
-        [type]: {
-          label: capitalize(type),
-          selected: filters[type],
-        },
-      })
+  const createFiltersState = (allGroupFilters, type): Filters<StackGraphSupportedFilterKeys> => {
+    return {
+      ...allGroupFilters,
+      [type]: {
+        label: capitalize(type),
+        selected: filters[type],
+      },
     }
+  }
 
   const graphFilters = Object.keys(filters).reduce(createFiltersState, {}) as Filters<StackGraphSupportedFilterKeys>
 

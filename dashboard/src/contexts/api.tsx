@@ -33,20 +33,12 @@ import {
   loadTestResultHandler,
   loadGraphHandler,
 } from "./api-handlers"
-import {
-  FetchLogsParams,
-  FetchTaskResultParams,
-  FetchTestResultParams,
-} from "../api/api"
+import { FetchLogsParams, FetchTaskResultParams, FetchTestResultParams } from "../api/api"
 import { initWebSocket } from "./ws-handlers"
 
-export type SupportedEventName = PickFromUnion<EventName,
-  "taskPending" |
-  "taskProcessing" |
-  "taskComplete" |
-  "taskGraphComplete" |
-  "taskError" |
-  "taskCancelled"
+export type SupportedEventName = PickFromUnion<
+  EventName,
+  "taskPending" | "taskProcessing" | "taskComplete" | "taskGraphComplete" | "taskError" | "taskCancelled"
 >
 
 export const supportedEventNames: Set<SupportedEventName> = new Set([
@@ -58,76 +50,67 @@ export const supportedEventNames: Set<SupportedEventName> = new Set([
   "taskCancelled",
 ])
 
-export type TaskState = PickFromUnion<SupportedEventName,
-  "taskComplete" |
-  "taskError" |
-  "taskPending" |
-  "taskProcessing" |
-  "taskCancelled"
+export type TaskState = PickFromUnion<
+  SupportedEventName,
+  "taskComplete" | "taskError" | "taskPending" | "taskProcessing" | "taskCancelled"
 >
 
 export interface Test {
-  config: TestConfig,
-  status: RunStatus,
-  result: TestResultOutput,
-  taskState: TaskState, // State of the test task for the module
+  config: TestConfig
+  status: RunStatus
+  result: TestResultOutput
+  taskState: TaskState // State of the test task for the module
 }
 
 export interface Task {
-  config: TaskConfig,
-  status: RunStatus,
-  result: TaskResultOutput,
-  taskState: TaskState, // State of the task task for the module
+  config: TaskConfig
+  status: RunStatus
+  result: TaskResultOutput
+  taskState: TaskState // State of the task task for the module
 }
 
-export type Module = Pick<ModuleConfig,
-  "name" |
-  "type" |
-  "path" |
-  "repositoryUrl" |
-  "description"
-> & {
-  services: string[],
-  tasks: string[],
-  tests: string[],
-  taskState: TaskState, // State of the build task for the module
+export type Module = Pick<ModuleConfig, "name" | "type" | "path" | "repositoryUrl" | "description"> & {
+  services: string[]
+  tasks: string[]
+  tests: string[]
+  taskState: TaskState // State of the build task for the module
 }
 
 export interface Service {
-  config: ServiceConfig,
-  status: ServiceStatus,
-  taskState: TaskState, // State of the deploy task for the service
+  config: ServiceConfig
+  status: ServiceStatus
+  taskState: TaskState // State of the deploy task for the service
 }
 
 interface RequestState {
-  loading: boolean,
+  loading: boolean
   didFetch: boolean
-  error?: AxiosError,
+  error?: AxiosError
 }
 
 /**
  * The "global" data store
  */
 export interface Store {
-  projectRoot: string,
+  projectRoot: string
   entities: {
     modules: { [moduleName: string]: Module }
     services: { [serviceName: string]: Service }
     tasks: { [taskName: string]: Task }
     tests: { [testKey: string]: Test }
     logs: { [serviceName: string]: ServiceLogEntry[] }
-    graph: GraphOutput,
-    providers: EnvironmentStatusMap,
-  },
+    graph: GraphOutput
+    providers: EnvironmentStatusMap
+  }
   requestStates: {
     fetchConfig: RequestState
     fetchStatus: RequestState
-    fetchGraph: RequestState,
-    fetchLogs: RequestState,
-    fetchTestResult: RequestState,
-    fetchTaskResult: RequestState,
-    fetchTaskStates: RequestState, // represents stack graph web sockets connection
-  },
+    fetchGraph: RequestState
+    fetchLogs: RequestState
+    fetchTestResult: RequestState
+    fetchTaskResult: RequestState
+    fetchTaskStates: RequestState // represents stack graph web sockets connection
+  }
 }
 
 type RequestKey = keyof Store["requestStates"]
@@ -174,13 +157,13 @@ interface LoadActionParams {
 }
 type LoadAction = (param?: LoadActionParams) => Promise<void>
 
-interface LoadLogsParams extends LoadActionParams, FetchLogsParams { }
+interface LoadLogsParams extends LoadActionParams, FetchLogsParams {}
 export type LoadLogs = (param: LoadLogsParams) => Promise<void>
 
-interface LoadTaskResultParams extends LoadActionParams, FetchTaskResultParams { }
+interface LoadTaskResultParams extends LoadActionParams, FetchTaskResultParams {}
 type LoadTaskResult = (param: LoadTaskResultParams) => Promise<void>
 
-interface LoadTestResultParams extends LoadActionParams, FetchTestResultParams { }
+interface LoadTestResultParams extends LoadActionParams, FetchTestResultParams {}
 type LoadTestResult = (param: LoadTestResultParams) => Promise<void>
 
 interface Actions {
@@ -192,10 +175,13 @@ interface Actions {
   loadGraph: LoadAction
 }
 
-const initialRequestState = requestKeys.reduce((acc, key) => {
-  acc[key] = { loading: false, didFetch: false }
-  return acc
-}, {} as { [K in RequestKey]: RequestState })
+const initialRequestState = requestKeys.reduce(
+  (acc, key) => {
+    acc[key] = { loading: false, didFetch: false }
+    return acc
+  },
+  {} as { [K in RequestKey]: RequestState }
+)
 
 const initialState: Store = {
   projectRoot: "",
@@ -219,18 +205,18 @@ function reducer(store: Store, action: Action): Store {
 
   switch (action.type) {
     case "fetchStart":
-      nextStore = produce(store, storeDraft => {
+      nextStore = produce(store, (storeDraft) => {
         storeDraft.requestStates[action.requestKey].loading = true
       })
       break
     case "fetchSuccess":
-      nextStore = produce(merge(store, action.store), storeDraft => {
+      nextStore = produce(merge(store, action.store), (storeDraft) => {
         storeDraft.requestStates[action.requestKey].loading = false
         storeDraft.requestStates[action.requestKey].didFetch = true
       })
       break
     case "fetchFailure":
-      nextStore = produce(store, storeDraft => {
+      nextStore = produce(store, (storeDraft) => {
         storeDraft.requestStates[action.requestKey].loading = false
         storeDraft.requestStates[action.requestKey].error = action.error
         // set didFetch to true on failure so the user can choose to force load the status
@@ -262,8 +248,8 @@ function useApiActions(store: Store, dispatch: React.Dispatch<Action>) {
 }
 
 type Context = {
-  store: Store;
-  actions: Actions;
+  store: Store
+  actions: Actions
 }
 
 // Type cast the initial value to avoid having to check whether the context exists in every context consumer.
@@ -290,9 +276,5 @@ export const ApiProvider: React.FC = ({ children }) => {
     return initWebSocket(store, dispatch)
   }, [])
 
-  return (
-    <Context.Provider value={{ store, actions }}>
-      {children}
-    </Context.Provider>
-  )
+  return <Context.Provider value={{ store, actions }}>{children}</Context.Provider>
 }

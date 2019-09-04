@@ -58,7 +58,10 @@ export interface FetchTestResultParams {
 }
 
 export async function fetchTestResult({ name, moduleName }: FetchTestResultParams) {
-  return apiPost<TestResultOutput>("get.test-result", { name, module: moduleName })
+  return apiPost<TestResultOutput>("get.test-result", {
+    name,
+    module: moduleName,
+  })
 }
 
 async function apiPost<T>(command: string, parameters: {} = {}): Promise<T> {
@@ -67,7 +70,12 @@ async function apiPost<T>(command: string, parameters: {} = {}): Promise<T> {
   const headers = { "Content-Type": "application/json" }
   const data: ApiRequest = { command, parameters }
 
-  const res = await axios.request<CommandResult<T>>({ url, method, headers, data })
+  const res = await axios.request<CommandResult<T>>({
+    url,
+    method,
+    headers,
+    data,
+  })
 
   if (res.data.errors) {
     throw res.data.errors

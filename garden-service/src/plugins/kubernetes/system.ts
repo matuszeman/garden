@@ -42,7 +42,9 @@ export const systemMetadataNamespace = "garden-system--metadata"
  * without them all modifying the same system build directory, which can cause unexpected issues.
  */
 export async function getSystemGarden(
-  ctx: KubernetesPluginContext, variables: PrimitiveMap, log: LogEntry,
+  ctx: KubernetesPluginContext,
+  variables: PrimitiveMap,
+  log: LogEntry
 ): Promise<Garden> {
   const sysProvider: KubernetesConfig = {
     ...ctx.provider.config,
@@ -63,9 +65,7 @@ export async function getSystemGarden(
       name: systemNamespace,
       defaultEnvironment: "default",
       dotIgnoreFiles: defaultDotIgnoreFiles,
-      environments: [
-        { name: "default", variables: {} },
-      ],
+      environments: [{ name: "default", variables: {} }],
       providers: [sysProvider],
       variables,
     },
@@ -84,7 +84,10 @@ export async function getSystemGarden(
  * Returns true if the namespace exists and has an up-to-date version.
  */
 export async function systemNamespaceUpToDate(
-  api: KubeApi, log: LogEntry, namespace: string, contextForLog: string,
+  api: KubeApi,
+  log: LogEntry,
+  namespace: string,
+  contextForLog: string
 ): Promise<boolean> {
   let namespaceResource: KubernetesResource<V1Namespace>
 
@@ -134,22 +137,29 @@ export async function recreateSystemNamespaces(api: KubeApi, log: LogEntry, name
 }
 
 interface GetSystemServicesStatusParams {
-  ctx: KubernetesPluginContext,
-  sysGarden: Garden,
-  log: LogEntry,
-  namespace: string,
-  serviceNames: string[],
+  ctx: KubernetesPluginContext
+  sysGarden: Garden
+  log: LogEntry
+  namespace: string
+  serviceNames: string[]
 }
 
-export async function getSystemServiceStatus(
-  { ctx, sysGarden, log, namespace, serviceNames }: GetSystemServicesStatusParams,
-) {
+export async function getSystemServiceStatus({
+  ctx,
+  sysGarden,
+  log,
+  namespace,
+  serviceNames,
+}: GetSystemServicesStatusParams) {
   let dashboardPages: DashboardPage[] = []
 
   const actions = await sysGarden.getActionHelper()
 
-  const serviceStatuses = await actions.getServiceStatuses({ log, serviceNames })
-  const state = combineStates(values(serviceStatuses).map(s => s.state || "unknown"))
+  const serviceStatuses = await actions.getServiceStatuses({
+    log,
+    serviceNames,
+  })
+  const state = combineStates(values(serviceStatuses).map((s) => s.state || "unknown"))
 
   // Add the Kubernetes dashboard to the Garden dashboard
   if (serviceNames.includes("kubernetes-dashboard")) {
@@ -158,7 +168,7 @@ export async function getSystemServiceStatus(
     const dashboardStatus = serviceStatuses["kubernetes-dashboard"]
     const dashboardServiceResource = find(
       (dashboardStatus.detail || {}).remoteObjects || [],
-      o => o.kind === "Service",
+      (o) => o.kind === "Service"
     )
 
     if (!!dashboardServiceResource) {
@@ -186,9 +196,14 @@ interface PrepareSystemServicesParams extends GetSystemServicesStatusParams {
   force: boolean
 }
 
-export async function prepareSystemServices(
-  { ctx, sysGarden, log, namespace, serviceNames, force }: PrepareSystemServicesParams,
-) {
+export async function prepareSystemServices({
+  ctx,
+  sysGarden,
+  log,
+  namespace,
+  serviceNames,
+  force,
+}: PrepareSystemServicesParams) {
   const api = await KubeApi.factory(log, ctx.provider)
 
   const contextForLog = `Preparing environment for plugin "${ctx.provider.name}"`
@@ -211,7 +226,7 @@ export async function prepareSystemServices(
       forceBuild: force,
     })
 
-    const failed = values(results.taskResults).filter(r => r && r.error).length
+    const failed = values(results.taskResults).filter((r) => r && r.error).length
 
     if (failed) {
       throw new PluginError(`${provider.name}: ${failed} errors occurred when configuring environment`, {

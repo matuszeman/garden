@@ -9,18 +9,13 @@
 import { ServerWebsocketMessage } from "garden-service/build/src/server/server"
 import { Events } from "garden-service/build/src/events"
 
-import {
-  Store,
-  Action,
-  SupportedEventName,
-  supportedEventNames,
-} from "./api"
+import { Store, Action, SupportedEventName, supportedEventNames } from "./api"
 import getApiUrl from "../api/get-api-url"
 
 export type WsEventMessage = ServerWebsocketMessage & {
-  type: "event",
-  name: SupportedEventName,
-  payload: Events[SupportedEventName],
+  type: "event"
+  name: SupportedEventName
+  payload: Events[SupportedEventName]
 }
 
 /**
@@ -33,20 +28,23 @@ export function isSupportedEvent(data: ServerWebsocketMessage): data is WsEventM
 export function initWebSocket(store: Store, dispatch: React.Dispatch<Action>) {
   const url = getApiUrl()
   const ws = new WebSocket(`ws://${url}/ws`)
-  ws.onopen = event => {
+  ws.onopen = (event) => {
     console.log("ws open", event)
   }
-  ws.onclose = event => {
+  ws.onclose = (event) => {
     console.log("ws close", event)
   }
-  ws.onmessage = msg => {
+  ws.onmessage = (msg) => {
     const parsedMsg = JSON.parse(msg.data) as ServerWebsocketMessage
 
     if (parsedMsg.type === "error") {
       console.error(parsedMsg)
     }
     if (isSupportedEvent(parsedMsg)) {
-      dispatch({ store: processWebSocketMessage(store, parsedMsg), type: "wsMessageReceived" })
+      dispatch({
+        store: processWebSocketMessage(store, parsedMsg),
+        type: "wsMessageReceived",
+      })
     }
   }
   return function cleanUp() {
@@ -86,13 +84,15 @@ function processWebSocketMessage(store: Store, message: WsEventMessage) {
         break
       case "test":
         storeDraft.entities.tests[entityName] = {
-          ...store.entities.tests[entityName], taskState,
+          ...store.entities.tests[entityName],
+          taskState,
         }
         break
     }
   }
 
-  if (taskState === "taskGraphComplete") { // add to requestState graph whenever its taskGraphComplete
+  if (taskState === "taskGraphComplete") {
+    // add to requestState graph whenever its taskGraphComplete
     storeDraft.requestStates.fetchTaskStates.loading = false
   }
 

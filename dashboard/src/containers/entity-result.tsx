@@ -24,10 +24,7 @@ const ErrorMsg = ({ error, type }) => (
 function prepareData(data: TestResultOutput | TaskResultOutput) {
   const startedAt = data.startedAt
   const completedAt = data.completedAt
-  const duration =
-    startedAt &&
-    completedAt &&
-    getDuration(startedAt, completedAt)
+  const duration = startedAt && completedAt && getDuration(startedAt, completedAt)
 
   const output = data.output
   return { duration, startedAt, completedAt, output }
@@ -48,7 +45,10 @@ interface Props {
 export default ({ name, moduleName, type, onClose }: Props) => {
   const {
     actions: { loadTestResult, loadTaskResult },
-    store: { entities: { tasks, tests }, requestStates: { fetchTestResult, fetchTaskResult } },
+    store: {
+      entities: { tasks, tests },
+      requestStates: { fetchTestResult, fetchTaskResult },
+    },
   } = useApi()
 
   const loadResults = () => {
@@ -79,7 +79,6 @@ export default ({ name, moduleName, type, onClose }: Props) => {
         {...(!fetchTestResult.loading && testResult && prepareData(testResult))}
       />
     )
-
   } else if (type === "task" || type === "run") {
     const taskResult = tasks && tasks[name] && tasks[name].result
 
@@ -96,17 +95,9 @@ export default ({ name, moduleName, type, onClose }: Props) => {
         type={type}
         moduleName={moduleName}
         {...(!fetchTaskResult.loading && taskResult && prepareData(taskResult))}
-
       />
     )
   } else {
-    return (
-      <EntityResult
-        onClose={onClose}
-        name={name}
-        type={type}
-        moduleName={moduleName}
-      />
-    )
+    return <EntityResult onClose={onClose} name={name} type={type} moduleName={moduleName} />
   }
 }

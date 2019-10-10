@@ -77,7 +77,7 @@ describe("startServer", () => {
 
       expect(taskResultOutputs(res.body.result)).to.eql({
         "build.module-a": {
-          buildLog: "A",
+          buildLog: "A\n",
           fresh: true,
         },
       })
@@ -208,7 +208,7 @@ describe("startServer", () => {
           requestId: id,
           result: {
             "build.module-a": {
-              buildLog: "A",
+              buildLog: "A\n",
               fresh: true,
             },
           },

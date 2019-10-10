@@ -1,0 +1,32 @@
+kind: Module
+type: exec
+local: true
+name: builder
+# This runs in the module directory before the "main" backend container is built
+build:
+  command: [go, "build"]
+env:
+  GOOS: linux
+  GOARCH: amd64
+---
+# This module's Dockerfile expects the Go binary to already be built
+kind: Module
+type: container
+name: backend
+# Setting the "builder" module as a dependency ensures that the Go binary is built
+# before the build step for this module is executed.
+build:
+  dependencies:
+    - builder
+services:
+  - name: backend
+    ports:
+      - name: http
+        containerPort: 8080
+        # Maps service:80 -> container:8080
+        servicePort: 80
+    ingresses:
+      - path: /hello-backend
+        port: http
+    dependencies:
+      - local-task

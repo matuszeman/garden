@@ -14,7 +14,7 @@ import { PluginContext } from "../../plugin-context"
 import { joiArray, joiProviderName, joi, joiEnvVars } from "../../config/common"
 import { Module } from "../../types/module"
 import { Service } from "../../types/service"
-import { ExecModuleSpec, ExecTestSpec, execTestSchema } from "../exec"
+import { ExecModuleSpecBase, ExecTestSpec, execTestSchema } from "../exec"
 import { KubernetesProvider } from "../kubernetes/config"
 import { CommonServiceSpec } from "../../config/service"
 import { Provider, providerConfigBaseSchema, ProviderConfig } from "../../config/provider"
@@ -26,7 +26,7 @@ import { LogEntry } from "../../logger/log-entry"
 import { baseBuildSpecSchema } from "../../config/module"
 import { DEFAULT_BUILD_TIMEOUT } from "../container/helpers"
 
-export interface OpenFaasModuleSpec extends ExecModuleSpec {
+export interface OpenFaasModuleSpec extends ExecModuleSpecBase {
   handler: string
   image: string
   lang: string

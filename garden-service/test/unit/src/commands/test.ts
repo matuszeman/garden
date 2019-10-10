@@ -21,24 +21,24 @@ describe("commands.test", () => {
     expect(isSubset(taskResultOutputs(result!), {
       "build.module-a": {
         fresh: true,
-        buildLog: "A",
+        buildLog: "A\n",
       },
       "test.module-a.unit": {
         success: true,
-        log: "OK",
+        log: "OK\n",
       },
       "build.module-b": {
         fresh: true,
-        buildLog: "B",
+        buildLog: "B\n",
       },
       "build.module-c": {},
       "test.module-b.unit": {
         success: true,
-        log: "OK",
+        log: "OK\n",
       },
       "test.module-c.unit": {
         success: true,
-        log: "OK",
+        log: "OK\n",
       },
     })).to.be.true
   })
@@ -60,11 +60,11 @@ describe("commands.test", () => {
     expect(isSubset(taskResultOutputs(result!), {
       "build.module-a": {
         fresh: true,
-        buildLog: "A",
+        buildLog: "A\n",
       },
       "test.module-a.unit": {
         success: true,
-        log: "OK",
+        log: "OK\n",
       },
     })).to.be.true
   })
@@ -86,26 +86,26 @@ describe("commands.test", () => {
     expect(isSubset(taskResultOutputs(result!), {
       "build.module-a": {
         fresh: true,
-        buildLog: "A",
+        buildLog: "A\n",
       },
       "test.module-a.integration": {
         success: true,
-        log: "OK",
+        log: "OK\n",
       },
       "test.module-c.integ": {
         success: true,
-        log: "OK",
+        log: "OK\n",
       },
     })).to.be.true
 
     expect(isSubset(taskResultOutputs(result!), {
       "test.module-a.unit": {
         success: true,
-        log: "OK",
+        log: "OK\n",
       },
       "test.module-c.unit": {
         success: true,
-        log: "OK",
+        log: "OK\n",
       },
     })).to.be.false
   })

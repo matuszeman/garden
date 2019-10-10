@@ -6,6 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+import split2 = require("split2")
 import Bluebird = require("bluebird")
 import { ResolvableProps } from "bluebird"
 import exitHook from "async-exit-hook"
@@ -22,6 +23,7 @@ import { safeDump } from "js-yaml"
 import { createHash } from "crypto"
 import { tailString } from "./string"
 import { Writable } from "stream"
+import { LogEntry } from "../logger/log-entry"
 
 // shim to allow async generator functions
 if (typeof (Symbol as any).asyncIterator === "undefined") {
@@ -88,6 +90,23 @@ export interface SpawnOutput {
   stdout?: string
   stderr?: string
   proc: any
+}
+
+/**
+ * Creates an output stream that updates a log entry on data events (in an opinionated way).
+ *
+ * Note that new entries are not created but rather the passed log entry gets updated.
+ * It's therefore recommended to pass a placeholder entry, for example: `log.placeholder(LogLevel.debug)`
+ */
+export function createOutputStream(log: LogEntry) {
+  const outputStream = split2()
+
+  outputStream.on("error", () => { })
+  outputStream.on("data", (line: Buffer) => {
+    log.setState(chalk.gray("  → " + line.toString().slice(0, 80)))
+  })
+
+  return outputStream
 }
 
 // TODO Dump output to a log file if it exceeds the MAX_BUFFER_SIZE

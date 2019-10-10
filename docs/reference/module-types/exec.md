@@ -7,6 +7,9 @@ title: Exec
 A simple module for executing commands in your shell. This can be a useful escape hatch if no other module
 type fits your needs, and you just need to execute something (as opposed to deploy it, track its status etc.).
 
+By default, the `exec` module type executes the commands in the Garden build directory. By setting `local: true`,
+the commands are executed in the same directory as the module itself.
+
 Below is the schema reference. For an introduction to configuring Garden modules, please look at our [Configuration
 guide](../../using-garden/configuration-files.md).
 The [first section](#configuration-keys) lists and describes the available
@@ -223,6 +226,14 @@ build:
     - build
 ```
 
+### `local`
+
+If set to true, Garden will run the build command, tests, and tasks in the directory where the module is located, instead of in the Garden build directory.
+
+| Type      | Required | Default |
+| --------- | -------- | ------- |
+| `boolean` | No       | `false` |
+
 ### `env`
 
 Key/value map of environment variables. Keys must be valid POSIX environment variable names (must not start with `GARDEN`) and values must be primitives.
@@ -287,7 +298,17 @@ The command to run in the module build context.
 
 | Type            | Required |
 | --------------- | -------- |
-| `array[string]` | No       |
+| `array[string]` | Yes      |
+
+### `tasks[].env`
+
+[tasks](#tasks) > env
+
+Key/value map of environment variables. Keys must be valid POSIX environment variable names (must not start with `GARDEN`) and values must be primitives.
+
+| Type     | Required | Default |
+| -------- | -------- | ------- |
+| `object` | No       | `{}`    |
 
 ### `tests`
 
@@ -335,7 +356,7 @@ The command to run in the module build context in order to test it.
 
 | Type            | Required |
 | --------------- | -------- |
-| `array[string]` | No       |
+| `array[string]` | Yes      |
 
 ### `tests[].env`
 
@@ -366,6 +387,7 @@ build:
         - source:
           target: <same as source path>
   command: []
+local: false
 env: {}
 tasks:
   - name:
@@ -373,6 +395,7 @@ tasks:
     dependencies: []
     timeout: null
     command:
+    env: {}
 tests:
   - name:
     dependencies: []

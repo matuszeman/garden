@@ -1,0 +1,7 @@
+kind: Module
+type: exec
+local: true
+name: local-executor
+tasks:
+  - name: local-task
+    command: [pwd]

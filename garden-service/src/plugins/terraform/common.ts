@@ -177,7 +177,7 @@ export async function applyStack(log: LogEntry, provider: TerraformProvider, roo
  * appropriate arguments to pass to the Terraform CLI, otherwise an empty array.
  */
 export async function prepareVariables(targetDir: string, variables: object): Promise<string[]> {
-  if (Object.entries(variables).length === 0) {
+  if (Object.entries(variables || {}).length === 0) {
     return []
   }
 

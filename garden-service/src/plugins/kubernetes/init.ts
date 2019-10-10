@@ -8,7 +8,7 @@
 
 import { KubeApi, KubernetesError } from "./api"
 import { getAppNamespace, prepareNamespaces, deleteNamespaces } from "./namespace"
-import { KubernetesPluginContext, KubernetesConfig } from "./config"
+import { KubernetesPluginContext, KubernetesConfig, KubernetesProvider } from "./config"
 import { checkTillerStatus, installTiller } from "./helm/tiller"
 import {
   prepareSystemServices,
@@ -23,7 +23,18 @@ import { CleanupEnvironmentParams } from "../../types/plugin/provider/cleanupEnv
 import { millicpuToString, megabytesToString } from "./util"
 import chalk from "chalk"
 import { deline } from "../../util/string"
-import { combineStates, ServiceStatusMap } from "../../types/service"
+import { combineStates, ServiceStatusMap, ServiceState, ServiceStatus } from "../../types/service"
+import { LogEntry } from "../../logger/log-entry"
+
+import yaml from "js-yaml"
+import { readFile } from "fs-extra"
+import { STATIC_DIR } from "../../constants"
+import { join } from "path"
+import { apply } from "./kubectl"
+import { helm } from "./helm/helm-cli"
+import { checkResourceStatuses, ResourceStatus } from "./status/status"
+import { KubernetesServerResource } from "./types"
+import { V1Pod } from "@kubernetes/client-node"
 
 const nfsStorageClass = "garden-system-nfs"
 
@@ -56,6 +67,7 @@ export async function getEnvironmentStatus({ ctx, log }: GetEnvironmentStatusPar
     systemReady: true,
     systemServiceState: "unknown",
     systemTillerReady: true,
+    systemCertManagerReady: true,
   }
 
   const result: EnvironmentStatus = {
@@ -89,6 +101,15 @@ export async function getEnvironmentStatus({ ctx, log }: GetEnvironmentStatusPar
   if (tillerStatus !== "ready") {
     result.ready = false
     detail.systemTillerReady = false
+  }
+
+  if (provider.config.tlsManager === "cert-manager") {
+    const certManagerStatus =  await checkCertManagerStatus({ provider, log })
+    if (certManagerStatus !== "ready") {
+      result.ready = false
+      detail.systemCertManagerReady = false
+      console.log("not ready, will trigger an install of cert-manager")
+    }
   }
 
   const api = await KubeApi.factory(log, provider)
@@ -131,6 +152,8 @@ export async function prepareEnvironment(params: PrepareEnvironmentParams): Prom
 
   // Install Tiller to project namespace
   await installTiller({ ctx: k8sCtx, provider: k8sCtx.provider, log, force })
+
+  await installCertManager({ ctx: k8sCtx, provider: k8sCtx.provider, log })
 
   // Prepare system services
   await prepareSystem({ ...params, clusterInit: false })
@@ -262,4 +285,74 @@ export function getKubernetesSystemVariables(config: KubernetesConfig) {
 
 export function getRegistryHostname() {
   return `garden-docker-registry.${systemNamespace}.svc.cluster.local`
+}
+
+// This is the suggested way to check if cert-maanger got deployed succesfully
+// https://docs.cert-manager.io/en/latest/getting-started/install/kubernetes.html
+export async function checkCertManagerStatus({ provider, log }): Promise<ServiceState> {
+  const api = await KubeApi.factory(log, provider)
+  const systemPods = await api.core.listNamespacedPod(systemNamespace)
+  const certManagerPods: KubernetesServerResource<V1Pod>[] = []
+  systemPods.items
+    .filter(pod => pod.metadata.name.includes("cert-manager"))
+    .map(pod => {
+      pod.apiVersion = "v1"
+      pod.kind = "Pod"
+      certManagerPods.push(pod)
+    })
+
+  // Expect to find 3 pods running:
+  // cert-manager, cert-manager-cainjector and cert-manager-webhook
+  if (certManagerPods.length !== 3) {
+    return "missing"
+  }
+  const podsStatuses = await checkResourceStatuses(api, systemNamespace, certManagerPods, log)
+  const notReady = podsStatuses.filter(p => p.state !== "ready")
+
+  return notReady.length ? notReady[0].state : "ready"
+}
+
+export interface InstallCertManagerParams {
+  ctx: KubernetesPluginContext
+  provider: KubernetesProvider
+  log: LogEntry
+}
+
+export async function installCertManager({ ctx, provider, log }: InstallCertManagerParams) {
+  const api = await KubeApi.factory(log, provider)
+  const customResourcesPath = join(STATIC_DIR, "kubernetes", "system", "cert-manager", "cert-manager-crd.yaml")
+  const crd = await yaml.safeLoadAll((await readFile(customResourcesPath)).toString()).filter(x => x)
+  console.log("Installing CRD")
+  await apply({ log, provider, manifests: crd, namespace: systemNamespace })
+
+  // # Label the cert-manager namespace to disable resource validation
+
+  const certManagerNSLabel = {
+    metadata: {
+      labels: {
+          "certmanager.k8s.io/disable-validation": "true",
+      },
+    },
+  }
+  await api.core.patchNamespace(systemNamespace, certManagerNSLabel)
+
+  // # Add the Jetstack Helm repository
+  const addRepoParams = ["repo", "add", "jetstack", "https://charts.jetstack.io"]
+  await helm({ ctx, namespace: systemNamespace, log, args: [...addRepoParams] })
+
+  // # Update your local Helm chart repository cache
+  await helm({ ctx, namespace: systemNamespace, log, args: [...["repo", "update"]] })
+
+  // # Install the cert-manager Helm chart
+  const installArgs = [
+    "install",
+    "--name", "cert-manager",
+    "--namespace", systemNamespace,
+    "--version", "v0.10.1",
+    "jetstack/cert-manager",
+  ]
+
+  await helm({ ctx, namespace: systemNamespace, log, args: [...installArgs] })
+  console.log("Success?")
+  return ""
 }

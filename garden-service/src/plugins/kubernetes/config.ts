@@ -27,6 +27,8 @@ export interface IngressTlsCertificate {
   secretRef: ProviderSecretRef
 }
 
+export type TlsManager = "cert-manager"
+
 interface KubernetesResourceSpec {
   limits: {
     cpu: number,
@@ -76,6 +78,7 @@ export interface KubernetesBaseConfig extends ProviderConfig {
   resources: KubernetesResources
   storage: KubernetesStorage
   tlsCertificates: IngressTlsCertificate[]
+  tlsManager?: TlsManager
   _systemServices: string[]
 }
 
@@ -342,6 +345,14 @@ export const kubernetesConfigBase = providerConfigBaseSchema
     tlsCertificates: joiArray(tlsCertificateSchema)
       .unique("name")
       .description("One or more certificates to use for ingress."),
+    tlsManager: joi.string()
+      .optional()
+      .example("cert-manager")
+      .description(dedent`
+        A multiline description of the tlsManager option <------ FILL ME UP BEFORE MERGING
+        <------ FILL ME UP BEFORE MERGING
+        <------ FILL ME UP BEFORE MERGING
+      `),
     _systemServices: joiArray(joiIdentifier())
       .meta({ internal: true }),
   })

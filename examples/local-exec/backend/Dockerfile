@@ -1,7 +1,7 @@
 FROM golang:1.8.3-alpine
 
 WORKDIR /server/
-COPY ./backend .
+COPY target/backend .
 
 ENTRYPOINT ./backend
 

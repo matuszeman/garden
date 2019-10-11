@@ -1,5 +1,9 @@
 kind: Project
 name: local-exec
+# Garden respects the .gitignore file by default. In this project we gitignore the Go binary
+# but we still need it for building the backend module, so we essentially tell Garden to
+# not use the .gitignore file.
+dotIgnoreFiles: []
 environments:
   - name: local
     providers:

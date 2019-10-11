@@ -2,9 +2,9 @@ kind: Module
 type: exec
 local: true
 name: builder
-# This runs in the module directory before the "main" backend container is built
+# This runs in the module directory before the backend container that's specified below is built
 build:
-  command: [go, "build"]
+  command: [go, build, -o, target/backend]
 env:
   GOOS: linux
   GOARCH: amd64
@@ -28,5 +28,3 @@ services:
     ingresses:
       - path: /hello-backend
         port: http
-    dependencies:
-      - local-task

@@ -176,7 +176,7 @@ describe("exec plugin", () => {
     const results = await _garden.processTasks([taskTask])
 
     // Task A echoes "task-a-output" and Task B echoes the output from Task A
-    expect(results["task.task-b"]!.output.outputs.log).to.equal("task-a-output\n\n")
+    expect(results["task.task-b"]!.output.outputs.log).to.equal("task-a-output")
   })
 
   describe("configureExecModule", () => {
@@ -238,7 +238,7 @@ describe("exec plugin", () => {
       const module = await graph.getModule("module-local")
       const actions = await garden.getActionHelper()
       const res = await actions.build({ log, module })
-      expect(res.buildLog).to.eql(join(projectRoot, "module-local") + "\n")
+      expect(res.buildLog).to.eql(join(projectRoot, "module-local"))
     })
   })
 
@@ -265,7 +265,7 @@ describe("exec plugin", () => {
         },
         testVersion: module.version,
       })
-      expect(res.log).to.eql(join(projectRoot, "module-local") + "\n")
+      expect(res.log).to.eql(join(projectRoot, "module-local"))
     })
   })
 
@@ -283,7 +283,7 @@ describe("exec plugin", () => {
         },
         taskVersion: task.module.version,
       })
-      expect(res.log).to.eql(join(projectRoot, "module-local") + "\n")
+      expect(res.log).to.eql(join(projectRoot, "module-local"))
     })
   })
 })

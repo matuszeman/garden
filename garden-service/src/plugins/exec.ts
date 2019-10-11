@@ -180,7 +180,7 @@ export async function buildExecModule({ module, log }: BuildModuleParams<ExecMod
     })
 
     output.fresh = true
-    output.buildLog = (res.stdout || "") + (res.stderr || "")
+    output.buildLog = ((res.stdout || "") + (res.stderr || "")).trim()
   }
 
   // keep track of which version has been built
@@ -215,7 +215,7 @@ export async function testExecModule({ module, log, testConfig }: TestModulePara
     success: result.code === 0,
     startedAt,
     completedAt: new Date(),
-    log: (result.stdout || "") + (result.stderr || ""),
+    log: ((result.stdout || "") + (result.stderr || "")).trim(),
   }
 }
 
@@ -236,7 +236,7 @@ export async function runExecTask(params: RunTaskParams): Promise<RunTaskResult>
     },
   })
   const completedAt = new Date()
-  const output = (result.stdout || "") + (result.stderr || "")
+  const output = ((result.stdout || "") + (result.stderr || "")).trim()
 
   return <RunTaskResult>{
     moduleName: module.name,
@@ -260,8 +260,8 @@ async function describeType() {
       A simple module for executing commands in your shell. This can be a useful escape hatch if no other module
       type fits your needs, and you just need to execute something (as opposed to deploy it, track its status etc.).
 
-      By default, the \`exec\` module type executes the commands in the Garden build directory. By setting \`local: true\`,
-      the commands are executed in the same directory as the module itself.
+      By default, the \`exec\` module type executes the commands in the Garden build directory (under .garden/build/<module name>). By setting \`local: true\`,
+      the commands are executed in the module source directory instead.
     `,
     moduleOutputsSchema: joi.object().keys({}),
     schema: execModuleSpecSchema,

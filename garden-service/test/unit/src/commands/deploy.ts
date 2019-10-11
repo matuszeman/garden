@@ -113,8 +113,8 @@ describe("DeployCommand", () => {
     }
 
     expect(taskResultOutputs(result!)).to.eql({
-      "build.module-a": { fresh: true, buildLog: "A\n" },
-      "build.module-b": { fresh: true, buildLog: "B\n" },
+      "build.module-a": { fresh: true, buildLog: "A" },
+      "build.module-b": { fresh: true, buildLog: "B" },
       "build.module-c": {},
       "get-task-result.task-a": null,
       "get-task-result.task-c": null,
@@ -181,8 +181,8 @@ describe("DeployCommand", () => {
     }
 
     expect(taskResultOutputs(result!)).to.eql({
-      "build.module-a": { fresh: true, buildLog: "A\n" },
-      "build.module-b": { fresh: true, buildLog: "B\n" },
+      "build.module-a": { fresh: true, buildLog: "A" },
+      "build.module-b": { fresh: true, buildLog: "B" },
       "build.module-c": {},
       "get-task-result.task-a": null,
       "get-task-result.task-c": null,

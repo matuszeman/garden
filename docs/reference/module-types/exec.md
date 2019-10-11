@@ -7,8 +7,8 @@ title: Exec
 A simple module for executing commands in your shell. This can be a useful escape hatch if no other module
 type fits your needs, and you just need to execute something (as opposed to deploy it, track its status etc.).
 
-By default, the `exec` module type executes the commands in the Garden build directory. By setting `local: true`,
-the commands are executed in the same directory as the module itself.
+By default, the `exec` module type executes the commands in the Garden build directory (under .garden/build/<module name>). By setting `local: true`,
+the commands are executed in the module source directory instead.
 
 Below is the schema reference. For an introduction to configuring Garden modules, please look at our [Configuration
 guide](../../using-garden/configuration-files.md).

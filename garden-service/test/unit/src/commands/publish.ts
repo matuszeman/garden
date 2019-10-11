@@ -173,7 +173,7 @@ describe("PublishCommand", () => {
 
     expect(taskResultOutputs(result!)).to.eql({
       "build.module-a": {
-        buildLog: "A\n",
+        buildLog: "A",
         fresh: true,
       },
       "publish.module-a": {
